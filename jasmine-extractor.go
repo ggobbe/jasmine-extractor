@@ -10,6 +10,10 @@ import (
 	"strings"
 )
 
+var (
+	newLine = ""
+)
+
 func main() {
 	files, err := ioutil.ReadDir("./")
 	if err != nil {
@@ -25,22 +29,23 @@ func main() {
 
 func ExtractJasmine(fileName string) {
 	file, err := os.Open(fileName)
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	reader := bufio.NewReader(file)
 
 	re := regexp.MustCompile("^(\\s*)(\\w+)\\((.+),(\\s*)function(.*)$")
+
+	fmt.Printf("%s::: %s :::\n", newLine, fileName)
+	newLine = "\n\n"
 
 	for line, err := Readln(reader); err == nil; line, err = Readln(reader) {
 		matches := re.FindStringSubmatch(line)
 		if len(matches) > 0 {
 			if matches[2] == "it" {
-				fmt.Printf("  ")
+				fmt.Printf("    ")
 			} else {
-				fmt.Printf("\n")
+				fmt.Printf("\n  ")
 			}
 			fmt.Printf("%s: %s\n", matches[2], matches[3])
 		}
@@ -49,7 +54,7 @@ func ExtractJasmine(fileName string) {
 
 // Readln returns a single line (without the ending \n)
 // from the input buffered reader.
-// An error is returned iff there is an error with the
+// An error is returned if there is an error with the
 // buffered reader.
 func Readln(r *bufio.Reader) (string, error) {
 	var (
