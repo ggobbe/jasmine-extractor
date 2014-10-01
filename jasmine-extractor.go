@@ -32,7 +32,7 @@ func ExtractJasmine(fileName string) {
 
 	reader := bufio.NewReader(file)
 
-	re := regexp.MustCompile("^(\\s*)(\\w+)\\((.+),(.*)function(.*)$")
+	re := regexp.MustCompile("^(\\s*)(\\w+)\\((.+),(\\s*)function(.*)$")
 
 	for line, err := Readln(reader); err == nil; line, err = Readln(reader) {
 		matches := re.FindStringSubmatch(line)
