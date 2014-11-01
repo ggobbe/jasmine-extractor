@@ -6,17 +6,21 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 	"sync"
 )
 
-var (
-	newLine = ""
-)
+var newLine = ""
 
 func main() {
-	files, err := ioutil.ReadDir("./")
+	var folder = "." // current folder if no args
+	if len(os.Args) > 1 {
+		folder = os.Args[1]
+	}
+
+	files, err := ioutil.ReadDir(folder)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -27,7 +31,7 @@ func main() {
 		if strings.HasSuffix(file.Name(), ".spec.js") {
 			waitGroup.Add(1)
 			go func(fileName string) {
-				ExtractJasmine(fileName)
+				ExtractJasmine(path.Join(folder, fileName))
 				waitGroup.Done()
 			}(file.Name())
 		}
