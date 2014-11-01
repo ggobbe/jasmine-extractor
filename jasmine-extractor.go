@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 var (
@@ -20,11 +21,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var waitGroup sync.WaitGroup
+
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".spec.js") {
-			ExtractJasmine(file.Name())
+			waitGroup.Add(1)
+			go func(fileName string) {
+				ExtractJasmine(fileName)
+				waitGroup.Done()
+			}(file.Name())
 		}
 	}
+
+	waitGroup.Wait()
 }
 
 func ExtractJasmine(fileName string) {
