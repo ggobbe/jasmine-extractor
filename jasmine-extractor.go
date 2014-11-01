@@ -13,11 +13,12 @@ import (
 
 func main() {
 	var folder string = "." // current folder if no args
-	if len(os.Args) > 2 {
+
+	var argc = len(os.Args)
+	if argc > 2 {
 		fmt.Println("Usage: jasmine-extractor [folder]")
 		return
-	}
-	if len(os.Args) > 1 {
+	} else if argc > 1 {
 		folder = os.Args[1]
 	}
 
@@ -37,9 +38,12 @@ func main() {
 	}
 
 	waitGroup.Wait()
+	fmt.Println("- Finished -")
 }
 
 func ExtractJasmine(filename string) {
+	fmt.Printf("Extracting %s...\n", path.Base(filename))
+
 	jsFile, err := os.Open(filename)
 	check(err)
 	defer jsFile.Close()
@@ -52,8 +56,6 @@ func ExtractJasmine(filename string) {
 	writer := bufio.NewWriter(specFile)
 
 	re := regexp.MustCompile("^(\\s*)(\\w+)\\((.+),(\\s*)function(.*)$")
-
-	fmt.Printf("Extracting %s...\n", path.Base(filename))
 
 	for line, err := Readln(reader); err == nil; line, err = Readln(reader) {
 		matches := re.FindStringSubmatch(line)
