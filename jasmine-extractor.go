@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"regexp"
@@ -12,18 +11,14 @@ import (
 	"sync"
 )
 
-var newLine = ""
-
 func main() {
-	var folder = "." // current folder if no args
+	var folder string = "." // current folder if no args
 	if len(os.Args) > 1 {
 		folder = os.Args[1]
 	}
 
 	files, err := ioutil.ReadDir(folder)
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(err)
 
 	var waitGroup sync.WaitGroup
 
@@ -41,28 +36,34 @@ func main() {
 }
 
 func ExtractJasmine(fileName string) {
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	reader := bufio.NewReader(file)
+	jsFile, err := os.Open(fileName)
+	check(err)
+	defer jsFile.Close()
+
+	specFile, err := os.Create(fileName[0:len(fileName)-len(path.Ext(fileName))] + ".txt")
+	check(err)
+	defer specFile.Close()
+
+	reader := bufio.NewReader(jsFile)
+	writer := bufio.NewWriter(specFile)
 
 	re := regexp.MustCompile("^(\\s*)(\\w+)\\((.+),(\\s*)function(.*)$")
 
-	fmt.Printf("%s::: %s :::\n", newLine, fileName)
-	newLine = "\n\n"
+	fmt.Printf("Extracting %s...\n", path.Base(fileName))
 
 	for line, err := Readln(reader); err == nil; line, err = Readln(reader) {
 		matches := re.FindStringSubmatch(line)
 		if len(matches) > 0 {
 			if matches[2] == "it" {
-				fmt.Printf("    ")
+				writer.WriteString("    ")
 			} else {
-				fmt.Printf("\n  ")
+				writer.WriteString("\n  ")
 			}
-			fmt.Printf("%s: %s\n", matches[2], matches[3])
+			writer.WriteString(fmt.Sprintf("%s: %s\n", matches[2], matches[3]))
 		}
 	}
+
+	writer.Flush()
 }
 
 // Readln returns a single line (without the ending \n)
@@ -80,4 +81,10 @@ func Readln(r *bufio.Reader) (string, error) {
 		ln = append(ln, line...)
 	}
 	return string(ln), err
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
