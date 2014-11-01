@@ -13,6 +13,10 @@ import (
 
 func main() {
 	var folder string = "." // current folder if no args
+	if len(os.Args) > 2 {
+		fmt.Println("Usage: jasmine-extractor [folder]")
+		return
+	}
 	if len(os.Args) > 1 {
 		folder = os.Args[1]
 	}
@@ -25,8 +29,8 @@ func main() {
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".spec.js") {
 			waitGroup.Add(1)
-			go func(fileName string) {
-				ExtractJasmine(path.Join(folder, fileName))
+			go func(filename string) {
+				ExtractJasmine(path.Join(folder, filename))
 				waitGroup.Done()
 			}(file.Name())
 		}
@@ -35,12 +39,12 @@ func main() {
 	waitGroup.Wait()
 }
 
-func ExtractJasmine(fileName string) {
-	jsFile, err := os.Open(fileName)
+func ExtractJasmine(filename string) {
+	jsFile, err := os.Open(filename)
 	check(err)
 	defer jsFile.Close()
 
-	specFile, err := os.Create(fileName[0:len(fileName)-len(path.Ext(fileName))] + ".txt")
+	specFile, err := os.Create(filename[0:len(filename)-len(path.Ext(filename))] + ".txt")
 	check(err)
 	defer specFile.Close()
 
@@ -49,7 +53,7 @@ func ExtractJasmine(fileName string) {
 
 	re := regexp.MustCompile("^(\\s*)(\\w+)\\((.+),(\\s*)function(.*)$")
 
-	fmt.Printf("Extracting %s...\n", path.Base(fileName))
+	fmt.Printf("Extracting %s...\n", path.Base(filename))
 
 	for line, err := Readln(reader); err == nil; line, err = Readln(reader) {
 		matches := re.FindStringSubmatch(line)
